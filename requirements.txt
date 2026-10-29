@@ -1,0 +1,12 @@
+sounddevice
+pynput
+librosa
+numpy
+scipy
+matplotlib
+pillow
+scikit-learn
+tensorflow
+streamlit
+pyspellchecker
+soundfile
