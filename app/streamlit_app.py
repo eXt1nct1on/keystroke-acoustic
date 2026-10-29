@@ -6,42 +6,42 @@ import io
 import sys
 from pathlib import Path
 
-import matplotlib.pyplot as plt
-import numpy as np
-import soundfile as sf
 import streamlit as st
-import tensorflow as tf
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SRC_DIR = PROJECT_ROOT / "src"
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
-from audio_utils import detect_onsets
-from infer import class_names_from_directory, infer, key_to_text
-
-
 MODEL_PATH = PROJECT_ROOT / "models" / "keystroke_classifier.keras"
 CLASSES_DIR = PROJECT_ROOT / "data" / "spectrograms" / "train"
 
 
 @st.cache_resource
-def load_model() -> tf.keras.Model:
+def load_model():
+    import tensorflow as tf
+
     return tf.keras.models.load_model(MODEL_PATH)
 
 
-def load_audio(uploaded_file: object) -> tuple[np.ndarray, int]:
+def load_audio(uploaded_file: object):
+    import numpy as np
+    import soundfile as sf
+
     data = uploaded_file.getvalue()
     audio, sample_rate = sf.read(io.BytesIO(data), dtype="float32", always_2d=True)
     return audio.mean(axis=1), sample_rate
 
 
 def plot_results(
-    audio: np.ndarray,
+    audio,
     sample_rate: int,
-    onset_times: np.ndarray,
-    predictions: list[tuple[str, float]],
-) -> plt.Figure:
+    onset_times,
+    predictions,
+):
+    import matplotlib.pyplot as plt
+    import numpy as np
+
     figure, axes = plt.subplots(
         2,
         1,
@@ -55,6 +55,8 @@ def plot_results(
     axes[0].set_title("Detected keystroke onsets")
     axes[0].set_xlabel("Time (seconds)")
     axes[0].set_ylabel("Amplitude")
+
+    from infer import key_to_text
 
     labels = [
         key_to_text(key).replace("\n", "return") or "space"
@@ -88,6 +90,9 @@ def main() -> None:
     try:
         if not MODEL_PATH.is_file():
             raise FileNotFoundError(f"Model not found: {MODEL_PATH}")
+        from audio_utils import detect_onsets
+        from infer import class_names_from_directory, infer, key_to_text
+
         class_names = class_names_from_directory(CLASSES_DIR)
         model = load_model()
         audio, sample_rate = load_audio(audio_file)
