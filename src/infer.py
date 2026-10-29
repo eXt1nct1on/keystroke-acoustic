@@ -14,7 +14,9 @@ from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 
 try:
     import sounddevice as sd
-except ImportError:
+except (ImportError, OSError):
+    # Streamlit Cloud may not provide the native PortAudio library.
+    # File-based inference remains available without microphone capture.
     sd = None
 
 try:
@@ -93,8 +95,9 @@ def parse_args() -> argparse.Namespace:
 def record_audio(duration: float, sample_rate: int) -> tuple[np.ndarray, int]:
     if sd is None:
         raise RuntimeError(
-            "Recording requires sounddevice. Install with "
-            "'python -m pip install sounddevice'."
+            "Live microphone recording is unavailable because sounddevice "
+            "could not load PortAudio. Upload a WAV file instead, or install "
+            "the PortAudio system library locally."
         )
     if duration <= 0:
         raise ValueError("Recording duration must be positive.")
